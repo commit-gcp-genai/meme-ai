@@ -1,0 +1,156 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Google AI Demo</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body style="background-color:rgb(65, 65, 65); color: white;">
+  <div class="container-fluid">
+    <div class="row text-center">
+      <div class="col-md-12">
+        <h1 class="display-4">Google Cloud - AI Demo</h1>
+        <p class="lead">This is a simple web application that uploads a picture to Google Storage and demonstrates some
+          of the capabilities
+          of Vision API, Translation API and Text-to-Speech </p>
+        <hr class="my-4">
+      </div>
+    </div>
+    <!-- <h1>Google Cloud Platform - Face Detection Sample</h1>
+  <p>This Python Flask application demonstrates App Engine Flexible, Google Cloud
+    Storage, Datastore, and the Cloud Vision API.</p> -->
+    <div class="container">
+
+      <form action="upload_photo" method="POST" enctype="multipart/form-data">
+        <div class="custom-file">
+          <input required="true" type="file" name="file" class="custom-file-input" id="customFile">
+          <label class="custom-file-label" for="customFile">Choose file</label>
+        </div>
+        <!-- Upload File: <input type="file" name="file"> -->
+        <br>
+        <br>
+        <div class="row justify-content-center">
+          <input type="submit" name="action" class="btn m-1" value="Submit">
+          <!-- <input type="submit" name="action" class="btn m-1" value="Meme">
+          <input type="submit" name="action" class="btn m-1" value="Translate"> -->
+        </div>
+      </form>
+      {% if form_error %}
+      <div class="alert alert-danger mt-1" role="alert">
+        {{form_error}}
+      </div>
+      {% endif%}
+    </div>
+    <div class="container w-100">
+      <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="carousel">
+        <ol class="carousel-indicators">
+          {% for image_entity in image_entities %}
+          {% if loop.index == 1 %}
+          <li data-target="#carouselExampleIndicators" data-slide-to="{{loop.index}}" class="active"></li>
+          {% else %}
+          <li data-target="#carouselExampleIndicators" data-slide-to="{{loop.index}}"></li>
+          {% endif %}
+          {% endfor %}
+        </ol>
+        <div class="carousel-inner">
+          {% for image_entity in image_entities %}
+          {% if loop.index == 1 %}
+          <div class="carousel-item active">
+            {% else %}
+            <div class="carousel-item">
+              {% endif %}
+              {% if image_entity['mp3_bucket_url'] %}
+              <div class="d-flex justify-content-center">
+                <audio controls class="mb-3" src="{{image_entity['mp3_bucket_url']}}">
+                  Your browser does not support the
+                  <code>audio</code> element.
+                </audio>
+              </div>
+              {% endif %}
+              <div class="d-flex justify-content-center">
+                {% if image_entity['processed'] == False %}
+                <img src="{{image_entity['original_image_public_url']}}" alt="image_entity['original_image_blob']"
+                  width="70%" height="auto">
+                {% else %}
+                <img src="{{image_entity['processed_image_public_url']}}" alt="image_entity['original_image_blob']"
+                  width="70%" height="auto">
+                {% endif %}
+              </div>
+              <div class="carousel-caption d-none d-md-block" style="position: relative; left: 0; top: 0;">
+                <!-- <h5>...</h5> -->
+                <div>
+                  <form action="process" class="d-flex justify-content-center" method="POST"
+                    enctype="multipart/form-data">
+                    <div class="form-group">
+                      <input name="original_image_blob" type="hidden" value="{{image_entity['original_image_blob']}}">
+                      <div class="input-group">
+                        <input type="text" class="form-control" name="caption" id="caption" placeholder="Caption">
+                        <div class="input-group-append">
+                          <input type="submit" class="btn m-1" name="action" name="meme" value="Meme">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="input-group">
+                        <div class="input-group-append">
+                          <select id="language" class="form-control mt-1" name="language">
+                            <option value="en">English</option>
+                            <!-- <option value="he">Hebrew</option> -->
+                            <option value="es">Spanish</option>
+                            <option value="ru">Russian</option>
+                            <option value="fr">French</option>
+                            <option value="it">Italian</option>
+                          </select>
+                        </div>
+                        <input type="submit" class="btn m-1" name="action" name="translate" value="Translate">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="input-group">
+                        <input type="submit" class="btn m-1" name="action" name="text_to_speech" value="Text-to-Speech">
+                        <input type="submit" class="btn  m-1" name="action" name="vision" value="Vision API Caption">
+                      </div>
+                    </div>
+                </div>
+                </form>
+                {% if image_entity['joy_score'] %}
+                <p>Joy Score: {{image_entity['joy_score']}} Ammount of Faces: {{image_entity['ammount_of_faces']}}</p>
+                {% endif %}
+                <br>
+              </div>
+            </div>
+            <!-- <p>{{image_entity['blob_name']}} was uploaded {{image_entity['timestamp']}}.</p> -->
+            {% endfor %}
+          </div>
+          <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+      <script>
+        // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+          var fileName = $(this).val().split("\\").pop();
+          $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+      </script>
+</body>
+
+</html>
