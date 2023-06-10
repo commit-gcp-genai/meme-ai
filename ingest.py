@@ -1,7 +1,7 @@
 import os
 from langchain.document_loaders import GitLoader
 from git import Repo
-from langchain.embeddings import OpenAIEmbeddings, VertexAIEmbeddings
+from langchain.embeddings import VertexAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
 import pinecone

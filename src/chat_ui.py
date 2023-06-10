@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_chat import message
 from streamlit_extras.colored_header import colored_header
 from streamlit_extras.add_vertical_space import add_vertical_space
-from chat import run_llm
+from chat_backend import run_llm
 from dotenv import load_dotenv
 import os
 
@@ -24,13 +24,8 @@ with st.sidebar:
     - [Pinecone 🌲 Vectorestore](https://www.pinecone.io/)
     - [Palm2 LLM Model](https://ai.google/discover/palm2)   
     - [Streamlit](https://streamlit.io/)
-
-
-
     """
     )
-    add_vertical_space(5)
-    st.write("Made by [Eden Marco](https://www.linkedin.com/in/eden-marco/)")
 
 if "generated" not in st.session_state:
     st.session_state["generated"] = ["I am CommitAssist, I'm here to answer any question you have about this application. Ask me anything!"]

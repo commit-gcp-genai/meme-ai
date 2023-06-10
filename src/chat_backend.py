@@ -26,7 +26,7 @@ def run_llm(query: str, chat_history: List[Dict[str, Any]] = []):
     )
     chat = ChatVertexAI(
         verbose=True,
-        temperature=0,
+        temperature=0
     )
 
     qa = ConversationalRetrievalChain.from_llm(
