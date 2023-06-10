@@ -16,7 +16,7 @@ pinecone.init(
 
 
 def ingest_docs(repo_url: str) -> None:
-    to_path = "./repo_to_embed"
+    to_path = "/tmp/repo_to_embed"
     repo = Repo.clone_from(repo_url, to_path=to_path, branch="main")
     loader = GitLoader(repo_path=to_path)
     raw_documents = loader.load()
