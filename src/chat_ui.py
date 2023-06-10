@@ -33,7 +33,7 @@ with st.sidebar:
     st.write("Made by [Eden Marco](https://www.linkedin.com/in/eden-marco/)")
 
 if "generated" not in st.session_state:
-    st.session_state["generated"] = ["I'm CodePen, How may I help you?"]
+    st.session_state["generated"] = ["I am CommitAssist, I'm here to answer any question you have about this application. Ask me anything!"]
 if "past" not in st.session_state:
     st.session_state["past"] = ["Hi!"]
 if "chat_history" not in st.session_state:
