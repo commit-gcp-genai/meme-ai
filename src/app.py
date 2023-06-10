@@ -61,6 +61,7 @@ def process():
     if request.form['action'] == 'Meme':
         caption = "Put a caption next time you press me" if len(request.form['caption']) == 0 else request.form['caption']
         memefy(blob_name, caption)
+    # Generate a caption by using Vision API labels and an LLM model using a prompt template
     elif request.form['action'] == "Generate Caption":
         generate_image_caption(blob_name)
     # Get datastore entity for image
@@ -71,15 +72,18 @@ def process():
         query = datastore_client.query(kind="Memes")
         image_entities = list(query.fetch())
         return render_template("homepage.html", image_entities=image_entities, form_error="The image you selected does not have a caption. Please add a caption and try again.")
+    # Translate caption to target language using Google Translate API
     if request.form['action'] == 'Translate':
         translate_target_lang = request.form['language']
         translate_text(blob_name, translate_target_lang)
+    # Convert caption to speech using Google Text-to-Speech API
     elif request.form['action'] == 'Text-to-Speech':
         text_to_mp3(blob_name)
 
     # # Redirect to the home page.
     return redirect("/")
 
+# Error Handling function
 @app.errorhandler(500)
 def server_error(e):
     logging.exception("An error occurred during a request.")
@@ -97,11 +101,12 @@ def server_error(e):
 def generate_image_caption(blob_name):
     # Download original image
     original_image_blob = helpers.download_asset_from_bucket(blob_name)
-    # Send original image to vision API
+    # Send original image to vision API to retrieve labels
     image = vision.Image(source=vision.ImageSource(image_uri=original_image_blob.public_url))
     labels = vision_client.label_detection(image=image).label_annotations
+    # Create a list of labels
     labels_list = [label.description for label in labels]
-    # Generate caption using LLM
+    # Generate caption using LLM model and the list of labels
     caption = generate_caption(labels=labels_list)
     # Update image entity from datastore
     memefy(blob_name, caption)
@@ -172,9 +177,6 @@ def text_to_mp3(blob_name):
     entity = datastore_client.get(key)
     # Prepare text to speech input
     synthesis_input = tts.SynthesisInput(text=entity['caption'])
-    # Set voice parameters depending on caption language
-    if entity["caption_language"] == "iw":
-        synthesis_input = tts.SynthesisInput(text="Sorry, hebrew has no supported voice yet. Try translating again to any of the other languages and press the button again.")
     # Set file format for the response
     audio_config = tts.AudioConfig(
         audio_encoding=tts.AudioEncoding.MP3
@@ -182,7 +184,7 @@ def text_to_mp3(blob_name):
     # Get the voice parameters
     caption_language = entity["caption_language"]
     voice = get_voice(caption_language=caption_language)
-    # Get mp3 file from TTS API
+    # Get mp3 file from Text to speech API
     response = tts_client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )

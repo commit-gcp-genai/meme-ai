@@ -1,11 +1,13 @@
 import os
-
 from langchain.document_loaders import GitLoader
 from git import Repo
 from langchain.embeddings import OpenAIEmbeddings, VertexAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
 import pinecone
+from dotenv import load_dotenv
+
+load_dotenv()
 
 pinecone.init(
     api_key=os.environ["PINECONE_API_KEY"],
@@ -13,7 +15,7 @@ pinecone.init(
 )
 
 
-def ingest_docs(repo_url: str, vendor: str = "google") -> None:
+def ingest_docs(repo_url: str) -> None:
     to_path = "./repo_to_embed"
     repo = Repo.clone_from(repo_url, to_path=to_path, branch="main")
     loader = GitLoader(repo_path=to_path)
@@ -38,10 +40,9 @@ def ingest_docs(repo_url: str, vendor: str = "google") -> None:
     documents = text_splitter.split_documents(raw_documents)
 
     print(f"Going to add {len(documents)} to Pinecone")
-    if vendor == "google":
-        embeddings = VertexAIEmbeddings()
-    elif vendor == "openai":
-        embeddings = OpenAIEmbeddings()
+
+    embeddings = VertexAIEmbeddings()
+
 
     chunk_size = 5
     for i in range(0, len(documents), chunk_size):
@@ -54,4 +55,4 @@ def ingest_docs(repo_url: str, vendor: str = "google") -> None:
 
 
 if __name__ == "__main__":
-    ingest_docs(repo_url="https://github.com/g-emarco/wordblend-ai")
+    ingest_docs(repo_url="https://github.com/commitgcp/commit-ai-apis-demo")

@@ -21,16 +21,12 @@
   <div class="container-fluid">
     <div class="row text-center">
       <div class="col-md-12">
-        <h1 class="display-4">Google Cloud - AI Demo</h1>
+        <h1 class="display-4">Google Cloud - MemeAI</h1>
         <p class="lead">This is a simple web application that uploads a picture to Google Storage and demonstrates some
-          of the capabilities
-          of Vision API, Translation API and Text-to-Speech </p>
+          of the capabilities of Vision API, Translation API, Text-to-Speech API and Gen AI APIs </p>
         <hr class="my-4">
       </div>
     </div>
-    <!-- <h1>Google Cloud Platform - Face Detection Sample</h1>
-  <p>This Python Flask application demonstrates App Engine Flexible, Google Cloud
-    Storage, Datastore, and the Cloud Vision API.</p> -->
     <div class="container">
 
       <form action="upload_photo" method="POST" enctype="multipart/form-data">
@@ -38,13 +34,10 @@
           <input required="true" type="file" name="file" class="custom-file-input" id="customFile">
           <label class="custom-file-label" for="customFile">Choose file</label>
         </div>
-        <!-- Upload File: <input type="file" name="file"> -->
         <br>
         <br>
         <div class="row justify-content-center">
           <input type="submit" name="action" class="btn m-1" value="Submit">
-          <!-- <input type="submit" name="action" class="btn m-1" value="Meme">
-          <input type="submit" name="action" class="btn m-1" value="Translate"> -->
         </div>
       </form>
       {% if form_error %}
@@ -89,7 +82,6 @@
                 {% endif %}
               </div>
               <div class="carousel-caption d-none d-md-block" style="position: relative; left: 0; top: 0;">
-                <!-- <h5>...</h5> -->
                 <div>
                   <form action="process" class="d-flex justify-content-center" method="POST"
                     enctype="multipart/form-data">
@@ -125,13 +117,9 @@
                     </div>
                 </div>
                 </form>
-                {% if image_entity['joy_score'] %}
-                <p>Joy Score: {{image_entity['joy_score']}} Ammount of Faces: {{image_entity['ammount_of_faces']}}</p>
-                {% endif %}
                 <br>
               </div>
             </div>
-            <!-- <p>{{image_entity['blob_name']}} was uploaded {{image_entity['timestamp']}}.</p> -->
             {% endfor %}
           </div>
           <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
