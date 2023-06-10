@@ -1,5 +1,5 @@
+import base64
 import logging, os, random
-
 from flask import Flask, redirect, render_template, request
 from google.cloud import datastore
 from google.cloud import vision
@@ -8,10 +8,14 @@ import google.cloud.texttospeech as tts
 from utils.memefy import Meme
 from utils.caption_generation_chain import generate_caption
 from utils.helpers import StorageHelpers
+from utils.image_generation import generate_image
 
 
 # Define variables
 CLOUD_STORAGE_BUCKET = os.environ.get("CLOUD_STORAGE_BUCKET")
+IMAGE_GENERATION_PROJECT = os.environ.get("IMAGE_GENERATION_PROJECT")
+IMAGE_GENERATION_LOCATION = os.environ.get("IMAGE_GENERATION_LOCATION")
+IMAGE_GENERATION_ENDPOINT = os.environ.get("IMAGE_GENERATION_ENDPOINT")
 
 # Initialize clients
 datastore_client = datastore.Client()
@@ -47,6 +51,37 @@ def upload_photo():
     print("Creating Datastore entity")
     entity = datastore.Entity(key)
     entity["original_image_blob"] = photo.filename
+    entity["original_image_public_url"] = blob.public_url
+    entity["processed"] = False
+    datastore_client.put(entity)
+    print("Done")
+    return redirect("/")
+
+@app.route("/generate_image", methods=["GET", "POST"])
+def generate_image_vertex_endpoint():
+    # Define a random uuid of 10 characters to use as the image name
+    blob_name = ''.join(random.choice('0123456789abcdef') for n in range(10))
+    # generate the image using the image generation model and the provided prompt
+    image_request = generate_image(
+        project=IMAGE_GENERATION_PROJECT,
+        endpoint=IMAGE_GENERATION_ENDPOINT,
+        location=IMAGE_GENERATION_LOCATION,
+        instances=[{ "prompt": request.form['prompt']}]
+    )
+    # Save the image to a file
+    with open("image.png", "wb") as fh:
+        fh.write(base64.b64decode(image_request.predictions[0]))
+    # Upload the image to Google Cloud Storage
+    blob = helpers.upload_asset_to_bucket("image.png", blob_name, content_type="image/png")
+    # The kind for the new entity.
+    kind = "Memes"
+    # Create the Cloud Datastore key for the new entity.
+    key = datastore_client.key(kind, blob_name)
+    # Construct the new entity using the key. Set dictionary values for entity
+    # keys blob_name, storage_public_url, timestamp.
+    print("Creating Datastore entity")
+    entity = datastore.Entity(key)
+    entity["original_image_blob"] = blob_name
     entity["original_image_public_url"] = blob.public_url
     entity["processed"] = False
     datastore_client.put(entity)

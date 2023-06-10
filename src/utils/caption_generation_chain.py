@@ -1,6 +1,7 @@
 from langchain.llms import VertexAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
+from google.cloud import aiplatform
 
 def generate_caption(labels):
     """
@@ -8,7 +9,7 @@ def generate_caption(labels):
     :param labels: A list of labels
     :return: A caption
     """
-
+    aiplatform.init(project="420795732463", location="us-central1")
     llm = VertexAI(temperature=1, max_output_tokens=20)
 
     prompt = PromptTemplate(

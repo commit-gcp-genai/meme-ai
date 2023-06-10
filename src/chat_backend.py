@@ -1,7 +1,6 @@
 import os
 from typing import Any, Dict, List
 
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings import VertexAIEmbeddings
 from langchain.chat_models import ChatVertexAI
 from langchain.chains import ConversationalRetrievalChain

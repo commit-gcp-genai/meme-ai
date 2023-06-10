@@ -40,6 +40,16 @@
           <input type="submit" name="action" class="btn m-1" value="Submit">
         </div>
       </form>
+      <!-- Form with a text box to generate an image from a prompt instead of uploading it -->
+      <form action="generate_image" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="prompt">Prompt</label>
+          <input type="text" class="form-control" name="prompt" id="prompt" placeholder="Prompt">
+        </div>
+        <div class="row justify-content-center">
+          <input type="submit" name="action" class="btn m-1" value="Generate">
+        </div>
+      </form>
       {% if form_error %}
       <div class="alert alert-danger mt-1" role="alert">
         {{form_error}}
