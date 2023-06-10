@@ -1,6 +1,5 @@
 import os
 from typing import Any, Dict, List
-
 from langchain.embeddings import VertexAIEmbeddings
 from langchain.chat_models import ChatVertexAI
 from langchain.chains import ConversationalRetrievalChain
@@ -14,7 +13,6 @@ pinecone.init(
     api_key=os.environ["PINECONE_API_KEY"],
     environment=os.environ["PINECONE_ENVIRONMENT_REGION"],
 )
-
 
 def run_llm(query: str, chat_history: List[Dict[str, Any]] = []):
     embeddings = VertexAIEmbeddings()  # Dimention 768

@@ -10,7 +10,6 @@ This repository contains two applications:
 - Google Cloud SDK installed and configured
 - Flask and other required Python packages (install using pip install -r requirements.txt)
 
-
 ## Meme AI Application
 The Meme AI application is a Python Flask application that uses Google Cloud AI services to generate captions for images and create memes. The application uses the following Google Cloud services:
 

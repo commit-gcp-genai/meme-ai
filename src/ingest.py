@@ -14,7 +14,6 @@ pinecone.init(
     environment=os.environ["PINECONE_ENVIRONMENT_REGION"],
 )
 
-
 def ingest_docs(repo_url: str) -> None:
     to_path = "/tmp/repo_to_embed"
     repo = Repo.clone_from(repo_url, to_path=to_path, branch="main")
@@ -42,7 +41,6 @@ def ingest_docs(repo_url: str) -> None:
     print(f"Going to add {len(documents)} to Pinecone")
 
     embeddings = VertexAIEmbeddings()
-
 
     chunk_size = 5
     for i in range(0, len(documents), chunk_size):
