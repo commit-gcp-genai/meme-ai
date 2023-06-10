@@ -61,7 +61,7 @@ def process():
     if request.form['action'] == 'Meme':
         caption = "Put a caption next time you press me" if len(request.form['caption']) == 0 else request.form['caption']
         memefy(blob_name, caption)
-    elif request.form['action'] == 'Vision API Caption':
+    elif request.form['action'] == "Generate Caption":
         generate_image_caption(blob_name)
     # Get datastore entity for image
     key = datastore_client.key("Memes", blob_name)

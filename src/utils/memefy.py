@@ -1,5 +1,12 @@
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+import os
+
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+font_dir = os.path.join(f"{current_dir}/..", 'static')
+fontfile = os.path.join(font_dir, 'impact.ttf')
+hebrew_fontfile = os.path.join(font_dir, 'VarelaRound-Regular.ttf')
 
 class Meme:
 
@@ -10,8 +17,8 @@ class Meme:
     stroke_fill = (0,0,0)             #outlineColor
     lineSpacing = 10            #Space between lines
     stroke_width=9              #How thick the outline of the text is
-    fontfile = '/Users/jonathanj/Documents/GitHub/commit-ai-apis-demo/src/static/impact.ttf'
-    hebrew_fonfile ="/Users/jonathanj/Documents/GitHub/commit-ai-apis-demo/src/static/VarelaRound-Regular.ttf"
+    fontfile = fontfile
+    hebrew_fontfile = hebrew_fontfile
 
     def __init__(self, caption, image, language):
 

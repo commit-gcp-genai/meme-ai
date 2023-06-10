@@ -10,3 +10,9 @@ Pillow
 beautifulsoup4
 google-cloud-datastore
 google-cloud-aiplatform
+pandas
+db-dtypes
+sqlalchemy
+sqlalchemy-bigquery
+gitpython
+pinecone-client

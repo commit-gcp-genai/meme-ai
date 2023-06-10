@@ -9,14 +9,19 @@ def generate_caption(labels):
     :return: A caption
     """
 
-    llm = VertexAI(temperature=1)
+    llm = VertexAI(temperature=1, max_output_tokens=20)
 
     prompt = PromptTemplate(
         input_variables=["labels"],
-        template="""You are a meme caption generator. You will receive a list of labels and generate a funny caption that relates to the labels found in the image.
-                    labels: {labels}
-                    caption:""",
+        template="""You are an extremely funny meme caption generator. 
+You will receive a list of items found within an image and generate a caption that relates to the items that you are given.
+The caption should not be longer than 10 words.
+
+items: {labels}
+caption:""",
     )
+
+    print(prompt.format(labels=labels))
 
     chain = LLMChain(llm=llm, prompt=prompt)
 
