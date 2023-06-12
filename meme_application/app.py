@@ -12,6 +12,7 @@ from utils.helpers import StorageHelpers
 from utils.image_generation import generate_image
 from io import BytesIO
 import tempfile
+import datetime
 
 
 # Define variables
@@ -87,10 +88,11 @@ def upload_photo():
     entity["original_image_blob"] = photo.filename
     entity["original_image_public_url"] = blob.public_url
     entity["processed"] = False
+    current_time = datetime.datetime.now()
+    entity["last_interaction"] = current_time
     datastore_client.put(entity)
     print("Done")
     return redirect("/")
-
 
 @app.route("/generate_image", methods=["GET", "POST"])
 def generate_image_vertex_endpoint():
@@ -119,6 +121,8 @@ def generate_image_vertex_endpoint():
     entity["original_image_blob"] = blob_name
     entity["original_image_public_url"] = blob.public_url
     entity["processed"] = False
+    current_time = datetime.datetime.now()
+    entity["last_interaction"] = current_time
     datastore_client.put(entity)
     print("Done")
     return redirect("/")
@@ -207,11 +211,13 @@ def memefy(file_name, caption):
   key = datastore_client.key("Memes", file_name)
   entity = datastore_client.get(key)
   for prop in entity:
-      entity[prop] = entity[prop]
+    entity[prop] = entity[prop]
   entity["processed_image_public_url"] = meme_blob.public_url
   entity["caption"] = caption
   entity["caption_language"] = detected_lang['language']
   entity["processed"] = True
+  current_time = datetime.datetime.now()
+  entity["last_interaction"] = current_time
   datastore_client.put(entity)
 
 # Translates text into the target language using Google cloud translate API
@@ -274,6 +280,8 @@ def text_to_mp3(blob_name):
     for prop in entity:
         entity[prop] = entity[prop]
     entity["mp3_bucket_url"] = mp3_blob.public_url
+    current_time = datetime.datetime.now()
+    entity["last_interaction"] = current_time
     datastore_client.put(entity)
 
 # Analyze the image with the cloud vision API to get a list of labels
@@ -290,6 +298,8 @@ def analyze_image(blob_name):
     for prop in entity:
         entity[prop] = entity[prop]
     entity["labels"] = labels_list
+    current_time = datetime.datetime.now()
+    entity["last_interaction"] = current_time
     datastore_client.put(entity)
     return labels_list
 

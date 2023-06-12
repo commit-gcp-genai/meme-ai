@@ -14,7 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set environment variables
-ENV 
+ENV CLOUD_STORAGE_BUCKET="commit-ai-apis-demo"
+ENV IMAGE_GENERATION_PROJECT="860550299524"
+ENV IMAGE_GENERATION_ENDPOINT="8743606735144484864"
+ENV IMAGE_GENERATION_LOCATION="europe-west1"
 
 # Expose the port on which the Flask app will run
 EXPOSE 8080
