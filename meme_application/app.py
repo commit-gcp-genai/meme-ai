@@ -1,5 +1,6 @@
 import base64
 import logging, os, random
+from PIL import Image, ExifTags
 from flask import Flask, redirect, render_template, request
 from google.cloud import datastore
 from google.cloud import vision
@@ -9,6 +10,8 @@ from utils.memefy import Meme
 from utils.caption_generation_chain import generate_caption
 from utils.helpers import StorageHelpers
 from utils.image_generation import generate_image
+from io import BytesIO
+import tempfile
 
 
 # Define variables
@@ -41,13 +44,44 @@ def homepage():
 @app.route("/upload_photo", methods=["GET", "POST"])
 def upload_photo():
     photo = request.files["file"]
-    blob = helpers.upload_asset_to_bucket(photo, photo.filename, content_type="image/jpeg")
-    # The kind for the new entity.
+    # Open the image and check for its orientation tag
+    image = Image.open(photo)
+    orientation = None
+    if hasattr(image, "_getexif") and image._getexif() is not None:
+        for key, value in image._getexif().items():
+            if key in ExifTags.TAGS and ExifTags.TAGS[key] == 'Orientation':
+                orientation = value
+                break
+
+    # Rotate the image based on the orientation tag
+    if orientation == 3:
+        image = image.transpose(Image.ROTATE_180)
+    elif orientation == 6:
+        image = image.transpose(Image.ROTATE_270)
+    elif orientation == 8:
+        image = image.transpose(Image.ROTATE_90)
+
+    # Resize the image to a square of size 300x300 pixels
+    image.thumbnail((300, 300))
+
+    # Create a new square image with a white background
+    new_image = Image.new("RGB", (300, 300), (255, 255, 255))
+    new_image.paste(image, ((300 - image.width) // 2, (300 - image.height) // 2))
+
+    # Save the resized and squared image to a temporary file
+    with tempfile.NamedTemporaryFile(suffix='.jpg') as temp_image:
+        new_image.save(temp_image.name, format='JPEG')
+
+        # Read the resized image from the temporary file
+        with open(temp_image.name, 'rb') as f:
+            resized_image = f.read()
+
+        # Upload the resized image to Google Cloud Storage
+        blob = helpers.upload_asset_to_bucket(resized_image, photo.filename, content_type="image/jpeg")
+
+    # The rest of the code remains unchanged...
     kind = "Memes"
-    # Create the Cloud Datastore key for the new entity.
     key = datastore_client.key(kind, photo.filename)
-    # Construct the new entity using the key. Set dictionary values for entity
-    # keys blob_name, storage_public_url, timestamp, and joy.
     print("Creating Datastore entity")
     entity = datastore.Entity(key)
     entity["original_image_blob"] = photo.filename
@@ -56,6 +90,7 @@ def upload_photo():
     datastore_client.put(entity)
     print("Done")
     return redirect("/")
+
 
 @app.route("/generate_image", methods=["GET", "POST"])
 def generate_image_vertex_endpoint():
@@ -69,10 +104,10 @@ def generate_image_vertex_endpoint():
         instances=[{ "prompt": request.form['prompt']}]
     )
     # Save the image to a file
-    with open("image.png", "wb") as fh:
+    with open("/tmp/image.png", "wb") as fh:
         fh.write(base64.b64decode(image_request.predictions[0]))
     # Upload the image to Google Cloud Storage
-    blob = helpers.upload_asset_to_bucket("image.png", blob_name, content_type="image/png")
+    blob = helpers.upload_asset_to_bucket("/tmp/image.png", blob_name, content_type="image/png")
     # The kind for the new entity.
     kind = "Memes"
     # Create the Cloud Datastore key for the new entity.
@@ -99,6 +134,11 @@ def process():
     # Generate a caption by using Vision API labels and an LLM model using a prompt template
     elif request.form['action'] == "Generate Caption":
         generate_image_caption(blob_name)
+        return redirect("/")
+    # Analyze the image using the Vision API
+    elif request.form['action'] == 'Analyze Image':
+        analyze_image(blob_name)
+        return redirect("/")
     # Get datastore entity for image
     key = datastore_client.key("Memes", blob_name)
     entity = datastore_client.get(key)
@@ -134,13 +174,15 @@ def server_error(e):
 
 # Use an LLM to generate a caption for an image given a list of lables from the Vision API
 def generate_image_caption(blob_name):
-    # Download original image
-    original_image_blob = helpers.download_asset_from_bucket(blob_name)
-    # Send original image to vision API to retrieve labels
-    image = vision.Image(source=vision.ImageSource(image_uri=original_image_blob.public_url))
-    labels = vision_client.label_detection(image=image).label_annotations
-    # Create a list of labels
-    labels_list = [label.description for label in labels]
+    # Get the image entity from datastore
+    key = datastore_client.key("Memes", blob_name)
+    entity = datastore_client.get(key)
+    # If entity has already labels, use them to generate a caption
+    if "labels" in entity:
+        labels_list = entity["labels"]
+    # If entity does not have labels, analyze the image using the Vision API
+    else:
+        labels_list = analyze_image(blob_name)
     # Generate caption using LLM model and the list of labels
     caption = generate_caption(labels=labels_list)
     # Update image entity from datastore
@@ -157,10 +199,10 @@ def memefy(file_name, caption):
   img = meme.draw()
   if img.mode in ("RGBA", "P"):   #Without this the code can break sometimes
       img = img.convert("RGB")
-  img.save('captioned_image.jpg', optimize=True, quality=80)
+  img.save('/tmp/captioned_image.jpg', optimize=True, quality=80)
   # Upload meme to bucket
   upload_image_blob = "processed/" + original_image_blob.name
-  meme_blob = helpers.upload_asset_to_bucket("captioned_image.jpg", upload_image_blob, content_type="image/jpeg")
+  meme_blob = helpers.upload_asset_to_bucket("/tmp/captioned_image.jpg", upload_image_blob, content_type="image/jpeg")
   # Update image entity from datastore
   key = datastore_client.key("Memes", file_name)
   entity = datastore_client.get(key)
@@ -234,7 +276,22 @@ def text_to_mp3(blob_name):
     entity["mp3_bucket_url"] = mp3_blob.public_url
     datastore_client.put(entity)
 
-
+# Analyze the image with the cloud vision API to get a list of labels
+def analyze_image(blob_name):
+    # Get the image entity from datastore
+    key = datastore_client.key("Memes", blob_name)
+    entity = datastore_client.get(key)
+    # Get the image labels from the vision API
+    image = vision.Image(source=vision.ImageSource(image_uri=entity['original_image_public_url']))
+    labels = vision_client.label_detection(image=image).label_annotations
+    # Create a list of labels
+    labels_list = [label.description for label in labels]
+    # Update the image entity with the labels
+    for prop in entity:
+        entity[prop] = entity[prop]
+    entity["labels"] = labels_list
+    datastore_client.put(entity)
+    return labels_list
 
 if __name__ == "__main__":
     # This is used when running locally. Gunicorn is used to run the

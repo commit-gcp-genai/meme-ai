@@ -1,0 +1,6 @@
+gitpython
+pinecone-client
+streamlit-chat
+streamlit-extras
+streamlit
+langchain

@@ -8,7 +8,7 @@ class StorageHelpers():
   def __init__(self) -> None:
       self.CLOUD_STORAGE_BUCKET = os.environ.get("CLOUD_STORAGE_BUCKET")
       self.storage_client = storage.Client()
-      self.asset_download_location = "tmp.jpeg"
+      self.asset_download_location = "/tmp/tmp.jpeg"
 
   def download_asset_from_bucket(self, asset):
       """Download an image from the bucket."""

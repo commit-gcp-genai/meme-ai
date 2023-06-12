@@ -1,4 +1,4 @@
-langchain
+
 python-dotenv
 google-cloud-storage
 google-cloud-bigquery
@@ -7,15 +7,6 @@ google-cloud-translate
 google-cloud-vision
 Flask
 Pillow
-beautifulsoup4
 google-cloud-datastore
 google-cloud-aiplatform
-pandas
-db-dtypes
-sqlalchemy
-sqlalchemy-bigquery
-gitpython
-pinecone-client
-streamlit-chat
-streamlit-extras
-streamlit
+langchain
