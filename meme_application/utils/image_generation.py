@@ -25,7 +25,7 @@ if __name__ == "__main__":
     )
     image_base64 = image_request.predictions[0]
     # Save the image to a file
-    with open("image.png", "wb") as fh:
+    with open("/tmp/image.png", "wb") as fh:
         fh.write(base64.b64decode(image_base64))
     
     

@@ -4,7 +4,7 @@ import os
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-font_dir = os.path.join(f"{current_dir}/..", 'static')
+font_dir = os.path.join(f"{current_dir}/..", 'static/fonts')
 fontfile = os.path.join(font_dir, 'impact.ttf')
 hebrew_fontfile = os.path.join(font_dir, 'VarelaRound-Regular.ttf')
 

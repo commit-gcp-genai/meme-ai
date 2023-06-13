@@ -1,0 +1,262 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Google AI Demo</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- Import styles from the static assets folder -->
+  <link rel="stylesheet" href="../static/css/styles.css">
+  <link rel="stylesheet" href="../static/css/background.css">
+</head>
+
+<body style="background-color:rgb(255, 255, 255); color: rgb(0, 0, 0); font-family: monospace; padding-top: 70px; padding-bottom: 10px;">
+
+
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div>
+      <a class="navbar-brand d-lg-none text-center mx-auto font-weight-bold" href="#">
+        MemeAI
+      </a>
+    </div>
+    <a class="navbar-brand d-none d-lg-block" href="https://www.comm-it.com">
+      <img src="../static/images/commit-logo.png" width="143" height="47" class="d-inline-block align-top" alt="Commit">
+    </a>
+    <div class="navbar-collapse collapse justify-content-center">
+      <a class="navbar-brand d-none d-lg-block font-weight-bold" href="#">
+        MemeAI
+      </a>
+    </div>
+    <a class="navbar-brand d-none d-lg-block" href="https://cloud.google.com">
+      <img src="../static/images/google-logo.png" height="50" class="d-inline-block align-top" alt="Google Cloud">
+    </a>
+  </nav>
+  
+  <div class="container">
+    <!-- Add some space between the top of the website and the title -->
+    <br>
+    <!-- Add instructions -->
+    <div class="row">
+
+      <div class="col-md-12">
+        <p class="lead">MemeAI is web application that shows how you can easily build a smart application using Google Cloud. The application uses Google Cloud Storage to store the images, uses pre-trained API's to add AI capabilities (Vision API, Translation API, Text-to-Speech API) and includes LLM models to generate images and captions. The MemeAI application was developed by the Jalfon brothers at Commit.</p>
+        <hr class="my-4">
+      </div>
+      <br>
+
+    <div class="col-md-12">
+      <p class="lead">Please use one of the options below to select an image for your meme (upload an existent image or generate one using a Stable Diffusion model)</p>
+    </div>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+          <form action="upload_photo" method="POST" enctype="multipart/form-data">
+            <div class="custom-file">
+              <div class="form-group">
+                <input required="true" type="file" name="file" class="custom-file-input" id="customFile">
+                <label class="custom-file-label" for="customFile">Choose file</label>
+              </div>
+            </div>
+            <br>
+            <div class="row justify-content-center">
+              <input type="submit" name="action" class="btn m-1" value="Submit">
+            </div>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <form action="generate_image" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <input type="text" class="form-control" name="prompt" id="prompt" placeholder="Enter a prompt to generate an image">
+            </div>
+            <div class="row justify-content-center">
+              <input type="submit" name="action" class="btn m-1" value="Generate">
+            </div>
+          </form>
+        </div>
+      </div>
+      <hr/>
+      {% if form_error %}
+      <div class="alert alert-danger mt-1" role="alert">
+        {{form_error}}
+      </div>
+      {% endif%}
+    </div>
+    <!-- Make a separator -->
+    <hr/>
+    <!-- Add "Meme Gallery" title -->
+    <div class="container-fluid">
+      <div class="col-md-12 text-center">
+        <h1 class="display-4">Meme Editor</h1>
+        <p class="lead">Hover over an uploaded or generated image to start creating memes! </p>
+      </div>
+      <hr/>
+
+        <div class="row justify-content-center image-grid">
+          <!-- Loop over image_entities but sort them in descending order based on last_interaction -->
+          {% for image_entity in image_entities|sort(reverse=True, attribute='last_interaction') %}
+          <div class="col-md-4">
+            <div class="image-container">
+              <!-- <img class="gallery-image" src="{{image_entity['processed_image_public_url']}}" alt="{{image_entity['original_image_blob']}}"> -->
+              {% if image_entity['processed'] == False %}
+              <img class="gallery-image" src="{{image_entity['original_image_public_url']}}" alt="{{image_entity['original_image_blob']}}">
+              {% else %}
+              <img class="gallery-image" src="{{image_entity['processed_image_public_url']}}" alt="{{image_entity['original_image_blob']}}">
+              {% endif %}
+              <div class="controls panel">
+                <form action="process" method="POST" enctype="multipart/form-data">
+                  <div class="form-group">
+                    <input name="original_image_blob" type="hidden" value="{{image_entity['original_image_blob']}}">
+                    <div class="input-group">
+                      <!-- Text area to update the caption. It should have a placeholder of "Caption" when the image has no caption but if it does, it should be populated with the caption -->
+                      <textarea class="form-control" name="caption" id="caption" rows="3" placeholder="Caption">{{image_entity['caption']}}</textarea>
+                      <input type="submit" class="btn m-1 ml-2" name="action" value="Update Caption">
+                      <input type="submit" class="btn m-1" name="action" value="Generate Caption">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="input-group">
+                      <div class="input-group">
+                        <select id="language" class="form-control mt-1" name="language">
+                          <option value="en">English</option>
+                          <option value="es">Spanish</option>
+                          <option value="ru">Russian</option>
+                          <option value="fr">French</option>
+                          <option value="it">Italian</option>
+                        </select>
+                        <div class="input-group-append">
+                          <input type="submit" class="btn m-1" name="action" value="Translate">
+                        </div>
+                      </div>
+                      <input type="submit" class="btn m-1" name="action" value="Text-to-Speech">
+                      {% if image_entity['mp3_bucket_url'] %}
+                      <div class="justify-content-center text-center mx-auto mt-3">
+                        <div class="audio-controls">
+                          <audio controls class="mb-3" src="{{image_entity['mp3_bucket_url']}}">
+                            Your browser does not support the <code>audio</code> element.
+                          </audio>
+                        </div>
+                      </div>
+                        {% endif %}
+                      <input type="submit" class="btn m-1" name="action" value="Analyze Image">
+                      <!-- Add a button to download the image from the public url, not redirect to it, download the file -->
+                    </div>
+                  </div>
+                  {% if image_entity['labels'] %}
+                    <p class="lead">Labels: {{image_entity['labels']}}</p>
+                  {% endif %}
+                  <input type="submit" class="btn m-1" name="action" value="Delete">
+                </form>
+                <a href="{{image_entity['processed_image_public_url']}}" class="btn m-1" download>Go to image</a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          <hr/>
+        </div>
+
+      <hr/>
+      <div class="text-center mx-auto">
+        <a href="https://github.com/commitgcp/commit-ai-apis-demo" target="_blank" rel="noopener noreferrer" class="m-3 text-black">
+          View Repo
+        </a>
+        <a href="https://chat-application-dl3fobmigq-uc.a.run.app" target="_blank" rel="noopener noreferrer" class="m-3 text-black">
+          Chat With Repo
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+
+  <script>
+    // Add the following code if you want the name of the file to appear on select
+    $(".custom-file-input").on("change", function () {
+      var fileName = $(this).val().split("\\").pop();
+      $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+  </script>
+
+  <script>
+      var imageContainers = document.querySelectorAll('.image-container');
+
+      imageContainers.forEach(function(container) {
+        container.addEventListener('click', function(event) {
+          var isMobile = window.innerWidth <= 768; // Check if the current device is mobile
+
+          if (isMobile) {
+            var panel = container.querySelector('.panel');
+            var clickedElement = event.target;
+            var isDropdown = clickedElement.classList.contains('form-control') || clickedElement.classList.contains('dropdown-menu');
+
+            if (!isDropdown) {
+              if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+              } else {
+                // Close other panels
+                imageContainers.forEach(function(otherContainer) {
+                  if (otherContainer !== container) {
+                    otherContainer.querySelector('.panel').style.display = 'none';
+                  }
+                });
+
+                panel.style.display = 'block';
+              }
+            }
+          }
+        });
+      });
+
+      document.addEventListener('click', function(event) {
+        var isMobile = window.innerWidth <= 768; // Check if the current device is mobile
+        var clickedElement = event.target;
+        var isImageContainer = clickedElement.classList.contains('image-container') || clickedElement.closest('.image-container');
+        var isPanel = clickedElement.classList.contains('panel') || clickedElement.closest('.panel');
+        var isDropdown = clickedElement.classList.contains('form-control') || clickedElement.classList.contains('dropdown-menu');
+
+        if (isMobile && !isImageContainer && !isPanel && !isDropdown) {
+          imageContainers.forEach(function(container) {
+            container.querySelector('.panel').style.display = 'none';
+          });
+        }
+      });
+  </script>
+
+  <script>
+    var navbar = document.querySelector('.navbar');
+    var isScrolling = false;
+    var lastScrollPosition = 0;
+
+    function handleScroll() {
+      if (!isScrolling) {
+        window.requestAnimationFrame(function() {
+          var currentScrollPosition = window.scrollY;
+
+          if (currentScrollPosition < lastScrollPosition || currentScrollPosition === 0) {
+            navbar.style.transform = 'translateY(0)';
+          } else {
+            navbar.style.transform = 'translateY(-100%)';
+          }
+
+          lastScrollPosition = currentScrollPosition;
+          isScrolling = false;
+        });
+
+        isScrolling = true;
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll);
+  </script>
+  
+</body>
+</html>

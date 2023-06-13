@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict, List
 from langchain.embeddings import VertexAIEmbeddings
-from langchain.chat_models import ChatVertexAI
+from langchain.llms import VertexAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.vectorstores import Pinecone
 import pinecone
@@ -21,7 +21,7 @@ def run_llm(query: str, chat_history: List[Dict[str, Any]] = []):
         embedding=embeddings,
         index_name=os.environ["PINECONE_INDEX_NAME"],
     )
-    chat = ChatVertexAI(
+    chat = VertexAI(
         verbose=True,
         temperature=0
     )
@@ -33,4 +33,4 @@ def run_llm(query: str, chat_history: List[Dict[str, Any]] = []):
 
 # Run locally
 if __name__ == "__main__":
-    print(run_llm(query="What is this application about?"))
+    print(run_llm(query="What is this repo?"))
