@@ -13,9 +13,9 @@ def get_text(instruction: str = "You: "):
     return input_text
 
 
-st.set_page_config(page_title="Codepen - An LLM-powered Repository SideKick")
+st.set_page_config(page_title="MemeAI Chatbot - AI powered chatbot")
 with st.sidebar:
-    st.title("🤗💬 Code-Pen")
+    st.title("💬 MemeAI Chat")
     st.markdown(
         """
     ## About

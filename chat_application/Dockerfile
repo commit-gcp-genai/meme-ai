@@ -14,12 +14,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set environment variables
-ENV PINECONE_API_KEY="352dabcd-86a6-4a12-9c2c-c1cf4f95d7c9"
-ENV PINECONE_ENVIRONMENT_REGION="us-west4-gcp-free"
-ENV PINECONE_INDEX_NAME="poc"
+ARG PINECONE_API_KEY
+ARG PINECONE_ENVIRONMENT_REGION
+ARG PINECONE_INDEX_NAME
+ENV PINECONE_API_KEY=$PINECONE_API_KEY
+ENV PINECONE_ENVIRONMENT_REGION=$PINECONE_ENVIRONMENT_REGION
+ENV PINECONE_INDEX_NAME=$PINECONE_INDEX_NAME
 
 # Expose the port on which the Flask app will run
-EXPOSE 8051
+EXPOSE 8501
 
 # Start the Flask app
 CMD ["streamlit", "run", "chat_ui.py"]

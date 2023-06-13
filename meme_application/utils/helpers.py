@@ -41,3 +41,11 @@ class StorageHelpers():
           self.CLOUD_STORAGE_BUCKET,
           blob_name))
       return blob
+  
+  def delete_asset_from_bucket(self, asset):
+      """Delete an image from the bucket."""
+      bucket = self.storage_client.get_bucket(self.CLOUD_STORAGE_BUCKET)
+      blob = bucket.blob(asset)
+      blob.delete()
+      print('Blob {} deleted.'.format(asset))
+      return blob

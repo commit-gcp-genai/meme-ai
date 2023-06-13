@@ -1,6 +1,7 @@
 .image-container {
   position: relative;
   overflow: hidden;
+  overflow-y: hidden;
   margin-bottom: 20px;
   text-align: center;
   height: 400px; /* Set a fixed height for all image containers */
@@ -37,6 +38,12 @@
 .navbar {
   background-color: #000000;
 }
+
+.navbar-brand
+{
+  font-size: 30px;
+}
+
 
 @media (max-width: 767.98px) {
   .navbar-brand-center {
@@ -119,3 +126,12 @@ hr {
   border-color: #000000 !important;
 }
 
+.text-black {
+  color: #000000 !important;
+  font-style: italic;
+  text-decoration: underline;
+}
+
+.borders-black {
+  border-color: #000000 !important;
+}

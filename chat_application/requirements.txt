@@ -4,3 +4,5 @@ streamlit-chat
 streamlit-extras
 streamlit
 langchain
+python-dotenv
+google-cloud-aiplatform

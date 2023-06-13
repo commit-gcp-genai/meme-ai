@@ -132,7 +132,7 @@ def generate_image_vertex_endpoint():
 def process():
     blob_name = request.form['original_image_blob']
     # Get image and check if it has a caption
-    if request.form['action'] == 'Meme':
+    if request.form['action'] == 'Update Caption':
         caption = "Put a caption next time you press me" if len(request.form['caption']) == 0 else request.form['caption']
         memefy(blob_name, caption)
     # Generate a caption by using Vision API labels and an LLM model using a prompt template
@@ -142,6 +142,9 @@ def process():
     # Analyze the image using the Vision API
     elif request.form['action'] == 'Analyze Image':
         analyze_image(blob_name)
+        return redirect("/")
+    elif request.form['action'] == 'Delete':
+        delete_image(blob_name)
         return redirect("/")
     # Get datastore entity for image
     key = datastore_client.key("Memes", blob_name)
@@ -302,6 +305,13 @@ def analyze_image(blob_name):
     entity["last_interaction"] = current_time
     datastore_client.put(entity)
     return labels_list
+
+# Delete the image from the bucket and the datastore
+def delete_image(blob_name):
+    key = datastore_client.key("Memes", blob_name)
+    datastore_client.delete(key)
+    helpers.delete_asset_from_bucket(blob_name)
+    print("Deleted image from bucket and datastore")
 
 if __name__ == "__main__":
     # This is used when running locally. Gunicorn is used to run the
