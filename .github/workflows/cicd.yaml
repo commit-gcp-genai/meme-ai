@@ -8,8 +8,8 @@ on:
 # variables to be used in the workflow
 env:
   PROJECT_ID: "commit-ai-apis-demo"
-  GAR_BASE_URL: "gcr.io"
-  GAR_REPOSITORY_NAME: "commit-ai-apis-demo"
+  GAR_BASE_URL: "europe-west1-docker.pkg.dev"
+  GAR_REPOSITORY_NAME: "docker"
 
 jobs:
   # Detect which apps have changed
@@ -86,7 +86,9 @@ jobs:
 
 # Deploy to cloud run
   deploy:
-    needs: build_and_push
+    needs:
+      - initialize
+      - build_and_push
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -107,17 +109,17 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
-      # Authenticate with gcloud
-      - uses: google-github-actions/setup-gcloud@main
-        with:
-          version: 'latest'
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: ${{ env.PROJECT_ID }}
-
+      # Replace underscore with dash
+      - name: Set app name
+        id: app_name
+        run: |
+          APP_NAME=$(echo ${{ matrix.app }} | sed 's/_/-/g')
+          echo $APP_NAME >> "$GITHUB_OUTPUT"
+          
       # Deploy to Cloud Run
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@main
         with:
-          service: ${{ matrix.app }}
+          service: ${{ steps.app_name.outputs.APP_NAME }}
           image: ${{env.GAR_BASE_URL}}/${{ env.PROJECT_ID }}/${{env.GAR_REPOSITORY_NAME}}/${{ matrix.app }}:${{ github.sha }}
           region: me-west1
