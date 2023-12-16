@@ -6,7 +6,7 @@ import google.cloud.translate_v2 as translate
 import google.cloud.texttospeech as tts
 from utils.datastore_operations import DatastoreManager
 from utils.memefy import Meme
-from utils.caption_generation_chain import generate_caption, generate_caption_gemini
+from utils.chains import generate_caption, generate_caption_gemini, generate_image_description
 from utils.helpers import StorageHelpers
 from utils.image_generation import generate_image
 from google.cloud import aiplatform
@@ -33,13 +33,29 @@ aiplatform.init(project=IMAGE_GENERATION_PROJECT, location=IMAGE_GENERATION_LOCA
 # Render HTML template
 @app.route("/")
 def homepage():
-    # Get all entities from Datastore
-    image_entities = datastore_manager.query_entities("Memes")
-    # Return a Jinja2 HTML template and pass in image_entities as a parameter.
-    return render_template(
-        "homepage.html", image_entities=image_entities, form_error=False
-    )
+    items_per_page = 12  # or any number you prefer
+    page = request.args.get('page', 1, type=int)  # Get the current page from the query parameter, default is 1
 
+    # Modify the query to fetch a subset of image_entities
+    image_entities = datastore_manager.query_entities("Memes")
+
+    # Calculate the total number of pages
+    total_pages = len(image_entities) // items_per_page + 1
+
+    # Order the image_entities by last_interaction
+    image_entities = sorted(image_entities, key=lambda k: k["last_interaction"], reverse=True)
+
+    # Get the current page of image_entities
+    image_entities = image_entities[(page - 1) * items_per_page : page * items_per_page]
+
+    # Pass entities and pagination details to the template
+    return render_template(
+        "homepage.html",
+        image_entities=image_entities,
+        total_pages=total_pages,
+        current_page=page,
+        form_error=False
+    )
 
 # Submit image to Google Cloud Storage
 @app.route("/upload_photo", methods=["GET", "POST"])
@@ -88,6 +104,7 @@ def upload_photo():
     properties = {
         "original_image_blob": photo.filename,
         "original_image_public_url": blob.public_url,
+        "image_description": generate_image_description(f"gs://{CLOUD_STORAGE_BUCKET}/{photo.filename}"),
         "processed": False,
     }
     datastore_manager.create_entity(kind, photo.filename, properties)
@@ -116,6 +133,8 @@ def generate_image_vertex():
     properties = {
         "original_image_blob": blob_name,
         "original_image_public_url": blob.public_url,
+        "image_description": generate_image_description(f"gs://{CLOUD_STORAGE_BUCKET}/{blob_name}"),
+        "prompt": prompt,
         "processed": False,
     }
     datastore_manager.create_entity(kind, blob_name, properties)
@@ -338,3 +357,14 @@ if __name__ == "__main__":
     # This is used when running locally. Gunicorn is used to run the
     # application on Google App Engine. See entrypoint in app.yaml.
     app.run(host="0.0.0.0", port=8080, debug=True)
+
+    # Generate new image descriptions for all entities
+    # entities = datastore_manager.query_entities("Memes")
+    # for entity in entities:
+    #     print("Generating image description for entity: " + entity.key.name)
+    #     description = generate_image_description(f"gs://{CLOUD_STORAGE_BUCKET}/{entity.key.name}")
+    #     print(description)
+    #     updates = {
+    #         "image_description": description,
+    #     }
+    #     datastore_manager.update_entity("Memes", entity.key.name, updates)

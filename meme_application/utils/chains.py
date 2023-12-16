@@ -43,3 +43,19 @@ def generate_caption_gemini(gcs_url):
         },
     )
     return responses.candidates[0].content.parts[0].text
+
+
+def generate_image_description(gcs_url):
+    model = GenerativeModel("gemini-pro-vision")
+    print(gcs_url)
+    image = Part.from_uri(gcs_url, mime_type="image/png")
+    responses = model.generate_content(
+        contents=[image, """Write an extensive (no longer than a paragraph) description of the image."""],
+        generation_config={
+            "max_output_tokens": 2048,
+            "temperature": 1,
+            "top_p": 1,
+            "top_k": 32,
+        },
+    )
+    return responses.candidates[0].content.parts[0].text
