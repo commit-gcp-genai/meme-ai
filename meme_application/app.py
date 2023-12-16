@@ -6,7 +6,7 @@ import google.cloud.translate_v2 as translate
 import google.cloud.texttospeech as tts
 from utils.datastore_operations import DatastoreManager
 from utils.memefy import Meme
-from utils.caption_generation_chain import generate_caption
+from utils.caption_generation_chain import generate_caption, generate_caption_gemini
 from utils.helpers import StorageHelpers
 from utils.image_generation import generate_image
 from google.cloud import aiplatform
@@ -29,6 +29,7 @@ helpers = StorageHelpers()
 app = Flask(__name__)
 aiplatform.init(project=IMAGE_GENERATION_PROJECT, location=IMAGE_GENERATION_LOCATION)
 
+
 # Render HTML template
 @app.route("/")
 def homepage():
@@ -38,6 +39,7 @@ def homepage():
     return render_template(
         "homepage.html", image_entities=image_entities, form_error=False
     )
+
 
 # Submit image to Google Cloud Storage
 @app.route("/upload_photo", methods=["GET", "POST"])
@@ -137,6 +139,9 @@ def process():
     elif request.form["action"] == "Generate Caption":
         generate_image_caption(blob_name)
         return redirect("/")
+    elif request.form["action"] == "Generate Caption (Gemini)":
+        generate_image_caption(blob_name, gemini=True)
+        return redirect("/")
     # Analyze the image using the Vision API
     elif request.form["action"] == "Analyze Image":
         analyze_image(blob_name)
@@ -181,17 +186,20 @@ def server_error(e):
 
 
 # Use an LLM to generate a caption for an image given a list of lables from the Vision API
-def generate_image_caption(blob_name):
-    # Get the image entity from datastore
-    entity = datastore_manager.get_entity("Memes", blob_name)
-    # If entity has already labels, use them to generate a caption
-    if "labels" in entity:
-        labels_list = entity["labels"]
-    # If entity does not have labels, analyze the image using the Vision API
+def generate_image_caption(blob_name, gemini=False):
+    if gemini:
+        caption = generate_caption_gemini(f"gs://{CLOUD_STORAGE_BUCKET}/{blob_name}")
     else:
-        labels_list = analyze_image(blob_name)
-    # Generate caption using LLM model and the list of labels
-    caption = generate_caption(labels=labels_list)
+        # Get the image entity from datastore
+        entity = datastore_manager.get_entity("Memes", blob_name)
+        # If entity has already labels, use them to generate a caption
+        if "labels" in entity:
+            labels_list = entity["labels"]
+        # If entity does not have labels, analyze the image using the Vision API
+        else:
+            labels_list = analyze_image(blob_name)
+        # Generate caption using LLM model and the list of labels
+        caption = generate_caption(labels=labels_list)
     # Update image entity from datastore
     memefy(blob_name, caption)
 
