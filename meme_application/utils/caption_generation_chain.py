@@ -1,8 +1,7 @@
 from langchain.llms import VertexAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from google.cloud import aiplatform
-
+from vertexai.preview.generative_models import GenerativeModel, Part
 
 def generate_caption(labels):
     """
@@ -10,7 +9,6 @@ def generate_caption(labels):
     :param labels: A list of labels
     :return: A caption
     """
-    aiplatform.init(project="420795732463", location="us-central1")
     llm = VertexAI(temperature=1, max_output_tokens=20)
 
     prompt = PromptTemplate(
@@ -28,3 +26,17 @@ caption:""",
     chain = LLMChain(llm=llm, prompt=prompt)
 
     return chain.run(labels=labels)
+
+def generate_caption_gemini(gcs_url):
+    model = GenerativeModel("gemini-pro-vision")
+    image = Part.from_uri(gcs_url, mime_type="image/jpeg")
+    responses = model.generate_content(
+        contents=[image, """Write a creative meme caption inspired by this image"""],
+        generation_config={
+            "max_output_tokens": 2048,
+            "temperature": 1,
+            "top_p": 1,
+            "top_k": 32
+        },
+    )
+    return responses.candidates[0].content.parts[0].text

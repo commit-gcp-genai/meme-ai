@@ -114,7 +114,7 @@ jobs:
         id: app_name
         run: |
           APP_NAME=$(echo ${{ matrix.app }} | sed 's/_/-/g')
-          echo $APP_NAME >> "$GITHUB_OUTPUT"
+          echo APP_NAME=$APP_NAME >> "$GITHUB_OUTPUT"
           
       # Deploy to Cloud Run
       - name: Deploy to Cloud Run
