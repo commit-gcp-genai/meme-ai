@@ -75,7 +75,7 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           push: true
-          context: ./
+          context: ./${{ matrix.app }}
           file: ./${{ matrix.app }}/Dockerfile
           tags: ${{ steps.metadata.outputs.tags }}
           labels: |

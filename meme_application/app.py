@@ -1,4 +1,3 @@
-import base64
 import logging, os, random
 from PIL import Image, ExifTags
 from flask import Flask, redirect, render_template, request
