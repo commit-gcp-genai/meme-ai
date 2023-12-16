@@ -16,7 +16,7 @@ COPY . .
 # Set environment variables
 ENV CLOUD_STORAGE_BUCKET="commit-ai-apis-demo"
 ENV IMAGE_GENERATION_PROJECT="420795732463"
-ENV IMAGE_GENERATION_LOCATION="europe-west1"
+ENV IMAGE_GENERATION_LOCATION="us-central1"
 
 # Expose the port on which the Flask app will run
 EXPOSE 8080
