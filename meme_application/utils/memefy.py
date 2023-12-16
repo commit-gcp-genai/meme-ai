@@ -4,29 +4,32 @@ import os
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-font_dir = os.path.join(f"{current_dir}/..", 'static/fonts')
-fontfile = os.path.join(font_dir, 'impact.ttf')
-hebrew_fontfile = os.path.join(font_dir, 'VarelaRound-Regular.ttf')
+font_dir = os.path.join(f"{current_dir}/..", "static/fonts")
+fontfile = os.path.join(font_dir, "impact.ttf")
+hebrew_fontfile = os.path.join(font_dir, "VarelaRound-Regular.ttf")
+
 
 class Meme:
-
-    basewidth = 1200             #Width to make the meme
+    basewidth = 1200  # Width to make the meme
     fontBase = 100
-    letSpacing = 9              #Space between letters
-    fill = (255, 255, 255)      #TextColor
-    stroke_fill = (0,0,0)             #outlineColor
-    lineSpacing = 10            #Space between lines
-    stroke_width=9              #How thick the outline of the text is
+    letSpacing = 9  # Space between letters
+    fill = (255, 255, 255)  # TextColor
+    stroke_fill = (0, 0, 0)  # outlineColor
+    lineSpacing = 10  # Space between lines
+    stroke_width = 9  # How thick the outline of the text is
     fontfile = fontfile
     hebrew_fontfile = hebrew_fontfile
 
     def __init__(self, caption, image, language):
-
         self.img = self.createImage(image)
         self.d = ImageDraw.Draw(self.img)
-        self.splitCaption = textwrap.wrap(caption, width=20)  # The text can be wider than the img. If thats the case split the text into multiple lines
-        self.splitCaption.reverse()                           # Draw the lines of text from the bottom up
-        fontSize = self.fontBase+10 if len(self.splitCaption) <= 1 else self.fontBase   #If there is only one line, make the text a bit larger
+        self.splitCaption = textwrap.wrap(
+            caption, width=20
+        )  # The text can be wider than the img. If thats the case split the text into multiple lines
+        self.splitCaption.reverse()  # Draw the lines of text from the bottom up
+        fontSize = (
+            self.fontBase + 10 if len(self.splitCaption) <= 1 else self.fontBase
+        )  # If there is only one line, make the text a bit larger
         if language == "iw":
             self.font = ImageFont.truetype(self.hebrew_fonfile, fontSize)
         else:
@@ -34,53 +37,63 @@ class Meme:
         # self.shadowFont = ImageFont.truetype(font='./impact.ttf', size=fontSize+10)
 
     def draw(self):
-        '''
+        """
         Draws text onto this objects img object
         :return: A pillow image object with text drawn onto the image
-        '''
+        """
         (iw, ih) = self.img.size
-        (_, th) = self.d.textsize(self.splitCaption[0], font=self.font) #Height of the text
-        y = (ih - (ih / 10)) - (th / 2) #The starting y position to draw the last line of text. Text in drawn from the bottom line up
+        (_, th) = self.d.textsize(
+            self.splitCaption[0], font=self.font
+        )  # Height of the text
+        y = (ih - (ih / 10)) - (
+            th / 2
+        )  # The starting y position to draw the last line of text. Text in drawn from the bottom line up
 
-        for cap in self.splitCaption:   #For each line of text
-            (tw, _) = self.d.textsize(cap, font=self.font)  # Getting the position of the text
-            x = ((iw - tw) - (len(cap) * self.letSpacing))/2  # Center the text and account for the spacing between letters
+        for cap in self.splitCaption:  # For each line of text
+            (tw, _) = self.d.textsize(
+                cap, font=self.font
+            )  # Getting the position of the text
+            x = (
+                (iw - tw) - (len(cap) * self.letSpacing)
+            ) / 2  # Center the text and account for the spacing between letters
 
             self.drawLine(x=x, y=y, caption=cap)
             y = y - th - self.lineSpacing  # Next block of text is higher up
 
-        wpercent = ((self.basewidth/2) / float(self.img.size[0]))
+        wpercent = (self.basewidth / 2) / float(self.img.size[0])
         hsize = int((float(self.img.size[1]) * float(wpercent)))
-        return self.img.resize((int(self.basewidth/2), hsize))
+        return self.img.resize((int(self.basewidth / 2), hsize))
 
     def createImage(self, image):
-        '''
+        """
         Resizes the image to a resonable standard size
         :param image: Path to an image file
         :return: A pil image object
-        '''
+        """
         img = Image.open(image)
-        wpercent = (self.basewidth / float(img.size[0]))
+        wpercent = self.basewidth / float(img.size[0])
         hsize = int((float(img.size[1]) * float(wpercent)))
         return img.resize((self.basewidth, hsize))
 
     def drawLine(self, x, y, caption):
-        '''
+        """
         The text gets split into multiple lines if it is wider than the image. This function draws a single line
         :param x: The starting x coordinate of the text
         :param y: The starting y coordinate of the text
         :param caption: The text to write on the image
         :return: None
-        '''
-        for idx in range(0, len(caption)):  #For each letter in the line of text
+        """
+        for idx in range(0, len(caption)):  # For each letter in the line of text
             char = caption[idx]
-            w, h = self.font.getsize(char)  #width and height of the letter
+            w, h = self.font.getsize(char)  # width and height of the letter
             self.d.text(
                 (x, y),
                 char,
                 fill=self.fill,
                 stroke_width=self.stroke_width,
                 font=self.font,
-                stroke_fill=self.stroke_fill
+                stroke_fill=self.stroke_fill,
             )  # Drawing the text character by character. This way spacing can be added between letters
-            x += w + self.letSpacing #The next character must be drawn at an x position more to the right
+            x += (
+                w + self.letSpacing
+            )  # The next character must be drawn at an x position more to the right

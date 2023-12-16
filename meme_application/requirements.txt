@@ -6,7 +6,8 @@ google-cloud-texttospeech
 google-cloud-translate
 google-cloud-vision
 Flask
-Pillow
+Pillow==9.5.0
 google-cloud-datastore
 google-cloud-aiplatform
 langchain
+black

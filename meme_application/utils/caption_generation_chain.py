@@ -3,6 +3,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from google.cloud import aiplatform
 
+
 def generate_caption(labels):
     """
     Generates a caption for a given set of labels
@@ -27,7 +28,3 @@ caption:""",
     chain = LLMChain(llm=llm, prompt=prompt)
 
     return chain.run(labels=labels)
-
-# Run locally
-if __name__ == "__main__":
-    print(generate_caption(["dog", "cat", "bird"]))
