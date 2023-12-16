@@ -1,0 +1,4 @@
+meme_application:
+  - meme_application/**
+chat_application:
+  - chat_application/**

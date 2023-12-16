@@ -1,0 +1,82 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+# variables to be used in the workflow
+env:
+  PROJECT_ID: "commit-ai-apis-demo"
+  GAR_BASE_URL: "gcr.io"
+  GAR_REPOSITORY_NAME: "commit-ai-apis-demo"
+
+jobs:
+  # Detect which apps have changed
+  initialize:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.filter.outputs.changes }}
+    steps:
+
+      # Checkout the repository
+      - uses: actions/checkout@v3.1.0
+
+      # For pull requests it's not necessary to checkout the code
+      - uses: dorny/paths-filter@v2.11.1
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: .github/filters.yaml
+
+  build_and_push:
+    needs: initialize
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.initialize.outputs.apps) }}
+    steps:
+      - uses: actions/checkout@v3.1.0
+
+      # Authenticate with gcloud
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: 'latest'
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      # Generate Docker metadata
+      - name: Generate Docker Metadata
+        id: metadata
+        uses: docker/metadata-action@v4.3.0
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ${{env.GAR_BASE_URL}}/${{ env.PROJECT_ID }}/${{env.GAR_REPOSITORY_NAME}}/${{ matrix.app }}
+          # generate Docker tags based on the following events/
+          tags: |
+            ${{ github.sha }}
+            latest
+        # Set up docker buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.2.1
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.10.6
+
+      # Login to Google Container Registry
+      - name: Run gcloud auth configure-docker
+        run: |-
+          gcloud auth configure-docker --quiet ${{ env.GAR_BASE_URL }}
+
+      # Build and Push Docker Image
+      - name: Build and Push ${{ matrix.app }}
+        uses: docker/build-push-action@v3.2.0
+        with:
+          push: true
+          context: ./
+          file: ./${{ matrix.app }}/Dockerfile
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: |
+            commmitsha=${{ github.sha }}
