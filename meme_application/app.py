@@ -100,8 +100,9 @@ def generate_image_vertex():
 
     # Get prompt from form
     prompt = request.form["prompt"]
+    model_name = request.form["model_name"]
     # generate the image using the image generation model and the provided prompt
-    image = generate_image(prompt)
+    image = generate_image(prompt, model_name)
     image.save("/tmp/image.png")
     # Upload the image to Google Cloud Storage
     blob = helpers.upload_asset_to_bucket(

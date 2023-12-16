@@ -78,6 +78,13 @@
             <div class="form-group">
               <input type="text" class="form-control" name="prompt" id="prompt" placeholder="Enter a prompt to generate an image">
             </div>
+            <div class="form-group">
+              <label for="model_name">Select a model:</label>
+              <select class="form-control" id="model_name" name="model_name">
+                <option value="imagegeneration@002">Imagen 1</option>
+                <option value="imagegeneration@005" selected="selected">Imagen 2</option>
+              </select>
+            </div>
             <div class="row justify-content-center">
               <input type="submit" name="action" class="btn m-1" value="Generate">
             </div>
