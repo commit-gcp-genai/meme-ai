@@ -34,7 +34,7 @@ def generate_caption_gemini(gcs_url):
     print(gcs_url)
     image = Part.from_uri(gcs_url, mime_type="image/png")
     responses = model.generate_content(
-        contents=[image, """Write a creative meme caption inspired by this image"""],
+        contents=[image, """Write a creative and extremely funny meme caption inspired by this image. The caption should not be longer than 10 words and must mention something that is present in the image."""],
         generation_config={
             "max_output_tokens": 2048,
             "temperature": 1,
